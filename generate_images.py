@@ -149,7 +149,7 @@ async def main() -> None:
         data = {'query': contributions_url}
         results = await asyncio.gather(
             s.queries.query(s.queries.repos_overview()),
-            make_github_request(session, s.queries.contrib_years_url(), 'POST', data),
+            make_github_request(session, s.queries.contrib_years(), 'POST', data),
             generate_languages(s),
             generate_overview(s)
         )
