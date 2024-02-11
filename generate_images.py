@@ -151,12 +151,12 @@ async def main() -> None:
                 print("Repository URL:", repo_url)
 
         # Wrap your API requests with the retry mechanism
-        # await asyncio.gather(
-        #     make_github_request(session, s.languages_url),
-        #     make_github_request(session, s.stats_url),
-        #     generate_languages(s),
-        #     generate_overview(s)
-        # )
+        await asyncio.gather(
+            make_github_request(session, s.queries.repos_overview()),
+            make_github_request(session, s.queries.contrib_years()),
+            generate_languages(s),
+            generate_overview(s)
+        )
 
 
 if __name__ == "__main__":
