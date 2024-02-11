@@ -97,9 +97,9 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 
 # Define a simple exponential backoff strategy
 @backoff.on_exception(backoff.expo, aiohttp.ClientError, max_tries=5)
-async def make_github_request(session, url):
-    async with session.get(urllib.parse.quote(url)) as response:
-        return await response.text()
+async def make_github_request(session, url, method='GET', data=None):
+    async with session.request(method, url, data=data) as response:
+        return await response.json()
 
 async def main() -> None:
     """
@@ -107,7 +107,6 @@ async def main() -> None:
     """
     access_token = os.getenv("ACCESS_TOKEN")
     if not access_token:
-        # access_token = os.getenv("GITHUB_TOKEN")
         raise Exception("A personal access token is required to proceed!")
     user = os.getenv("GITHUB_ACTOR")
     if user is None:
@@ -116,12 +115,11 @@ async def main() -> None:
     excluded_repos = (
         {x.strip() for x in exclude_repos.split(",")} if exclude_repos else None
     )
-    
+
     exclude_langs = os.getenv("EXCLUDED_LANGS")
     excluded_langs = (
         {x.strip() for x in exclude_langs.split(",")} if exclude_langs else None
     )
-    # Convert a truthy value to a Boolean
     raw_ignore_forked_repos = os.getenv("EXCLUDE_FORKED_REPOS")
     ignore_forked_repos = (
         not not raw_ignore_forked_repos
@@ -137,28 +135,24 @@ async def main() -> None:
             ignore_forked_repos=ignore_forked_repos,
         )
 
-        # Wrap the GraphQL queries with the retry mechanism
         results = await asyncio.gather(
             s.queries.query(s.queries.repos_overview()),
             s.queries.query(s.queries.contrib_years()),
-            # Add other queries here as needed
         )
 
-        # Extract repository URLs from the results and print them
         for result in results:
-            # Example: print repository URL from the response
             repo_url = result.get("html_url")
             if repo_url:
                 print("Repository URL:", repo_url)
 
-        # Wrap your API requests with the retry mechanism
-        # await asyncio.gather(
-        #     s.queries.query(s.queries.repos_overview()),
-        #     make_github_request(session, urllib.parse.quote(s.queries.contrib_years())),
-        #     generate_languages(s),
-        #     generate_overview(s)
-        # )
-
+        contributions_url = s.queries.contrib_years_url()
+        data = {'query': contributions_url}
+        results = await asyncio.gather(
+            s.queries.query(s.queries.repos_overview()),
+            make_github_request(session, s.queries.contrib_years_url(), 'POST', data),
+            generate_languages(s),
+            generate_overview(s)
+        )
 
 if __name__ == "__main__":
     asyncio.run(main())
