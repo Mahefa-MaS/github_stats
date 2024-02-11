@@ -94,6 +94,11 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 # Main Function
 ################################################################################
 
+# Define a simple exponential backoff strategy
+@backoff.on_exception(backoff.expo, aiohttp.ClientError, max_tries=5)
+async def make_github_request(session, url):
+    async with session.get(url) as response:
+        return await response.text()
 
 async def main() -> None:
     """
@@ -129,7 +134,14 @@ async def main() -> None:
             exclude_langs=excluded_langs,
             ignore_forked_repos=ignore_forked_repos,
         )
-        await asyncio.gather(generate_languages(s), generate_overview(s))
+
+        # Wrap your API requests with the retry mechanism
+        await asyncio.gather(
+            make_github_request(session, s.languages_url),
+            make_github_request(session, s.stats_url),
+            generate_languages(s),
+            generate_overview(s)
+        )
 
 
 if __name__ == "__main__":
