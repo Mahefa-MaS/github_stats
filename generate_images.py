@@ -136,10 +136,11 @@ async def main() -> None:
             ignore_forked_repos=ignore_forked_repos,
         )
 
-        # Wrap your API requests with the retry mechanism
+        # Wrap the GraphQL queries with the retry mechanism
         results = await asyncio.gather(
-            make_github_request(session, s.languages_url),
-            make_github_request(session, s.stats_url),
+            s.queries.query(s.queries.repos_overview()),
+            s.queries.query(s.queries.contrib_years()),
+            # Add other queries here as needed
         )
 
         # Extract repository URLs from the results and print them
