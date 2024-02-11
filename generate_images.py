@@ -135,13 +135,15 @@ async def main() -> None:
             ignore_forked_repos=ignore_forked_repos,
         )
 
+        print(s)
+
         # Wrap your API requests with the retry mechanism
-        await asyncio.gather(
-            make_github_request(session, s.languages_url),
-            make_github_request(session, s.stats_url),
-            generate_languages(s),
-            generate_overview(s)
-        )
+        # await asyncio.gather(
+        #     make_github_request(session, s.languages_url),
+        #     make_github_request(session, s.stats_url),
+        #     generate_languages(s),
+        #     generate_overview(s)
+        # )
 
 
 if __name__ == "__main__":
