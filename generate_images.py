@@ -115,6 +115,9 @@ async def main() -> None:
     excluded_repos = (
         {x.strip() for x in exclude_repos.split(",")} if exclude_repos else None
     )
+
+    print(exclude_repos, excluded_repos)
+    
     exclude_langs = os.getenv("EXCLUDED_LANGS")
     excluded_langs = (
         {x.strip() for x in exclude_langs.split(",")} if exclude_langs else None
@@ -134,8 +137,6 @@ async def main() -> None:
             exclude_langs=excluded_langs,
             ignore_forked_repos=ignore_forked_repos,
         )
-
-        print(s)
 
         # Wrap your API requests with the retry mechanism
         # await asyncio.gather(
