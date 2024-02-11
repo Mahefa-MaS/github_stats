@@ -5,9 +5,8 @@ import os
 import re
 
 import aiohttp
-import backoff
+
 from github_stats import Stats
-import urllib.parse
 
 
 ################################################################################
@@ -95,11 +94,6 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 # Main Function
 ################################################################################
 
-# Define a simple exponential backoff strategy
-@backoff.on_exception(backoff.expo, aiohttp.ClientError, max_tries=5)
-async def make_github_request(session, url, method='GET', data=None):
-    async with session.request(method, url, data=data) as response:
-        return await response.json()
 
 async def main() -> None:
     """
@@ -107,6 +101,7 @@ async def main() -> None:
     """
     access_token = os.getenv("ACCESS_TOKEN")
     if not access_token:
+        # access_token = os.getenv("GITHUB_TOKEN")
         raise Exception("A personal access token is required to proceed!")
     user = os.getenv("GITHUB_ACTOR")
     if user is None:
@@ -115,11 +110,11 @@ async def main() -> None:
     excluded_repos = (
         {x.strip() for x in exclude_repos.split(",")} if exclude_repos else None
     )
-
     exclude_langs = os.getenv("EXCLUDED_LANGS")
     excluded_langs = (
         {x.strip() for x in exclude_langs.split(",")} if exclude_langs else None
     )
+    # Convert a truthy value to a Boolean
     raw_ignore_forked_repos = os.getenv("EXCLUDE_FORKED_REPOS")
     ignore_forked_repos = (
         not not raw_ignore_forked_repos
@@ -134,25 +129,8 @@ async def main() -> None:
             exclude_langs=excluded_langs,
             ignore_forked_repos=ignore_forked_repos,
         )
+        await asyncio.gather(generate_languages(s), generate_overview(s))
 
-        results = await asyncio.gather(
-            s.queries.query(s.queries.repos_overview()),
-            s.queries.query(s.queries.contrib_years()),
-        )
-
-        for result in results:
-            repo_url = result.get("html_url")
-            if repo_url:
-                print("Repository URL:", repo_url)
-
-        contributions_url = s.queries.contrib_years()
-        data = {'query': contributions_url}
-        results = await asyncio.gather(
-            s.queries.query(s.queries.repos_overview()),
-            make_github_request(session, s.queries.contrib_years(), 'POST', data),
-            generate_languages(s),
-            generate_overview(s)
-        )
 
 if __name__ == "__main__":
     asyncio.run(main())
