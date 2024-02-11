@@ -98,7 +98,7 @@ fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8z"></path></svg>
 # Define a simple exponential backoff strategy
 @backoff.on_exception(backoff.expo, aiohttp.ClientError, max_tries=5)
 async def make_github_request(session, url):
-    async with session.get(url) as response:
+    async with session.get(urllib.parse.quote(url)) as response:
         return await response.text()
 
 async def main() -> None:
@@ -152,12 +152,12 @@ async def main() -> None:
                 print("Repository URL:", repo_url)
 
         # Wrap your API requests with the retry mechanism
-        await asyncio.gather(
-            s.queries.query(s.queries.repos_overview()),
-            make_github_request(session, urllib.parse.quote(s.queries.contrib_years())),
-            generate_languages(s),
-            generate_overview(s)
-        )
+        # await asyncio.gather(
+        #     s.queries.query(s.queries.repos_overview()),
+        #     make_github_request(session, urllib.parse.quote(s.queries.contrib_years())),
+        #     generate_languages(s),
+        #     generate_overview(s)
+        # )
 
 
 if __name__ == "__main__":
