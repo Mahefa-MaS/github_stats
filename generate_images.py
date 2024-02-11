@@ -152,8 +152,8 @@ async def main() -> None:
 
         # Wrap your API requests with the retry mechanism
         await asyncio.gather(
-            make_github_request(session, s.queries.repos_overview()),
-            make_github_request(session, s.queries.contrib_years()),
+            s.queries.query(s.queries.repos_overview()),
+            make_github_request(session, urllib.parse.quote(s.queries.contrib_years())),
             generate_languages(s),
             generate_overview(s)
         )
