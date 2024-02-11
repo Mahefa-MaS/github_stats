@@ -136,7 +136,18 @@ async def main() -> None:
             ignore_forked_repos=ignore_forked_repos,
         )
 
-        print(session)
+        # Wrap your API requests with the retry mechanism
+        results = await asyncio.gather(
+            make_github_request(session, s.languages_url),
+            make_github_request(session, s.stats_url),
+        )
+
+        # Extract repository URLs from the results and print them
+        for result in results:
+            # Example: print repository URL from the response
+            repo_url = result.get("html_url")
+            if repo_url:
+                print("Repository URL:", repo_url)
 
         # Wrap your API requests with the retry mechanism
         # await asyncio.gather(
