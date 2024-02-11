@@ -145,7 +145,7 @@ async def main() -> None:
             if repo_url:
                 print("Repository URL:", repo_url)
 
-        contributions_url = s.queries.contrib_years_url()
+        contributions_url = s.queries.contrib_years()
         data = {'query': contributions_url}
         results = await asyncio.gather(
             s.queries.query(s.queries.repos_overview()),
