@@ -7,6 +7,7 @@ import re
 import aiohttp
 import backoff
 from github_stats import Stats
+import urllib.parse
 
 
 ################################################################################
